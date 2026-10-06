@@ -1,0 +1,91 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { FirstAidKit, GearSix, SignOut } from '@phosphor-icons/react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { LogoutDialog } from './logout-dialog';
+
+/** Adın baş harfleri (en çok iki): "Gizem Gonca" → "GG". Türkçe büyük harf. */
+function initials(name: string): string {
+  const letters = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0] ?? '');
+  return letters.join('').toLocaleUpperCase('tr') || '?';
+}
+
+/**
+ * Danışanın sağ üstteki avatar menüsü (PT'ninkiyle aynı yerde): Sağlık (kısıtlar ya da tarama onaylıysa),
+ * ayarlar (sağlık takibi, şifre) ve çıkış. Yalnız telefon: düğme ve öğeler 44 px. Çıkış onay penceresiyle. Gezinme alttaki dock'ta
+ * (`client-dock.tsx`); Ayarlar ve Çıkış yalnız burada. Programlar dock'un 4. sekmesi olunca "Programım"
+ * kalktı (docs/design/kendi-program.md, karar 1; antrenman-ekrani.md açık soru 12).
+ */
+export function ClientMenu({
+  clientId,
+  name,
+  appName,
+  hasPassword,
+  health = false,
+  demo,
+}: {
+  clientId: string;
+  name: string;
+  appName: string;
+  hasPassword: boolean;
+  /** Kısıtlar ya da tarama onaylı: "Sağlık" (tasarım `kisit-tarama.md` §5.2). */
+  health?: boolean;
+  demo?: { switchRole: () => void; reset: () => void };
+}) {
+  const [leaving, setLeaving] = useState(false);
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          aria-label="Hesap menüsü"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+          <Avatar size="lg">
+            <AvatarFallback className="font-medium text-foreground">{initials(name)}</AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-56">
+          {demo ? <DropdownMenuGroup>
+            <DropdownMenuItem className="min-h-11" onClick={demo.switchRole}>PT görünümüne geç</DropdownMenuItem>
+            <DropdownMenuItem className="min-h-11" onClick={demo.reset}>Demoyu sıfırla</DropdownMenuItem>
+          </DropdownMenuGroup> : <><DropdownMenuGroup>
+            <DropdownMenuLabel className="flex flex-col gap-0.5">
+              <span className="text-foreground">{name}</span>
+              <span className="font-normal text-muted-foreground">{appName}</span>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem className="min-h-11" render={<Link href="/me/koc" />}>AI koç</DropdownMenuItem>
+            {health ? (
+              <DropdownMenuItem className="min-h-11" render={<Link href="/me/saglik" />}>
+                <FirstAidKit />
+                Sağlık
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem className="min-h-11" render={<Link href="/me/ayarlar" />}>
+              <GearSix />
+              Ayarlar
+            </DropdownMenuItem>
+          </DropdownMenuGroup></>}
+          {demo ? null : <><DropdownMenuSeparator /><DropdownMenuItem variant="destructive" className="min-h-11" onClick={() => setLeaving(true)}><SignOut />Çıkış yap</DropdownMenuItem></>}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {demo ? null : <LogoutDialog open={leaving} onOpenChange={setLeaving} hasPassword={hasPassword} clientId={clientId} />}
+    </>
+  );
+}

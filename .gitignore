@@ -1,0 +1,26 @@
+node_modules/
+.next/
+.next-*/
+public/landing/
+out/
+dist/
+.env
+.env.*
+!.env.example
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.omc/
+
+# Local agent checkouts are not application source
+.claude/worktrees/
+
+# Guided setup export contains the owner credentials
+axon-fit.env
+
+# Locally generated pose runtime
+public/pose/runtime/
+public/pose/pose-worker.js
+
+node_modules
